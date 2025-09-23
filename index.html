@@ -306,8 +306,8 @@
     function showResult(ansA, ansB, nameA, nameB) {
         document.getElementById('page2').style.display = 'none';
         document.getElementById('page3').style.display = '';
-        // Skoring: selisih tiap jawaban, makin kecil makin cocok
-        let total = questions.length * 4; // max selisih 4 per soal
+        // Skoring: selisih tiap jawaban, makin besar makin cocok
+        let total = questions.length * 4; // max selisih 2 per soal
         let diff = 0;
         for (let i = 0; i < questions.length; i++) {
             diff += Math.abs((ansA[i]||0) - (ansB[i]||0));
