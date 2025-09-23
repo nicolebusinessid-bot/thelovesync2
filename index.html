@@ -306,32 +306,46 @@
     function showResult(ansA, ansB, nameA, nameB) {
         document.getElementById('page2').style.display = 'none';
         document.getElementById('page3').style.display = '';
-        // Skoring: selisih tiap jawaban, makin besar makin cocok
-        let total = questions.length * 4; // max selisih 2 per soal
-        let diff = 0;
-        for (let i = 0; i < questions.length; i++) {
-            diff += Math.abs((ansA[i]||0) - (ansB[i]||0));
-        }
-        let percent = Math.round(100 - (diff / total) * 100);
-        percent = Math.max(0, Math.min(100, percent));
-        let msg = getMessage(percent);
 
-        document.getElementById('page3').innerHTML = `
-            <h2>Hasil Love Sync</h2>
-            <div class="love-score">
-                <div>
-                    <div class="love-shape"><span class="score-number">${percent}%</span></div>
-                    <div class="score-label">${nameA}</div>
-                </div>
-                <div>
-                    <div class="love-shape"><span class="score-number">${percent}%</span></div>
-                    <div class="score-label">${nameB}</div>
-                </div>
+    // Skor untuk Person A
+    let total = questions.length * 4;
+    let diffA = 0;
+    for (let i = 0; i < questions.length; i++) {
+        diffA += Math.abs((ansA[i] || 0) - (ansB[i] || 0));
+    }
+    let percentA = Math.round(100 - (diffA / total) * 100);
+    percentA = Math.max(0, Math.min(100, percentA));
+
+    // Skor untuk Person B (bisa sama, bisa beda jika ingin logika lain)
+    let diffB = 0;
+    for (let i = 0; i < questions.length; i++) {
+        diffB += Math.abs((ansB[i] || 0) - (ansA[i] || 0));
+    }
+    let percentB = Math.round(100 - (diffB / total) * 100);
+    percentB = Math.max(0, Math.min(100, percentB));
+
+    let msgA = getMessage(percentA);
+    let msgB = getMessage(percentB);
+
+    document.getElementById('page3').innerHTML = `
+        <h2>Hasil Love Sync</h2>
+        <div class="love-score">
+            <div>
+                <div class="love-shape"><span class="score-number">${percentA}%</span></div>
+                <div class="score-label">${nameA}</div>
             </div>
-            <div class="score-message">${msg}</div>
-            <div style="margin-top:32px;">
-                <button onclick="location.reload()">Main Lagi</button>
+            <div>
+                <div class="love-shape"><span class="score-number">${percentB}%</span></div>
+                <div class="score-label">${nameB}</div>
             </div>
+        </div>
+        <div class="score-message">
+            <b>${nameA}:</b> ${msgA}<br><br>
+            <b>${nameB}:</b> ${msgB}
+        </div>
+        <div style="margin-top:32px;">
+            <button onclick="location.reload()">Main Lagi</button>
+        </div>
         `;
     }
     </script>
