@@ -232,8 +232,6 @@
                 document.getElementById('page2').style.display = '';
                 showQuestion();
                 listenToRoom();
-            });
-        });
     }
 
     function showQuestion() {
@@ -254,7 +252,6 @@
             html += `
                 <div style="font-size:1.2rem;margin:24px 0 18px 0;">Semua pertanyaan sudah dijawab!</div>
                 <button onclick="submitAllAnswers()">Selesai Jawab</button>
-            `;
         }
         document.getElementById('page2').innerHTML = html;
     }
@@ -342,9 +339,6 @@
         </div>
         `;
     }
-<script>
-// ... semua fungsi JS ...
-window.startRoom = startRoom;
-</script>
+    </script>
 </body>
 </html>
