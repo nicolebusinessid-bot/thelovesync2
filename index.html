@@ -284,17 +284,15 @@
 
     function listenToRoom() {
         db.ref('rooms/' + roomCode).on('value', snapshot => {
-            const data = snapshot.val();
-            if (!data) return;
-            if (data.playerA && data.playerB && data.playerA.submitted && data.playerB.submitted) {
-                // Urutan hasil sesuai input awal
-                let hasilA = (playerType === 'A') ? data.playerA : data.playerB;
-                let hasilB = (playerType === 'A') ? data.playerB : data.playerA;
-                showResult(hasilA.answers, hasilB.answers, hasilA.name, hasilB.name);
-            }
-        });
+    const data = snapshot.val();
+    if (!data) return;
+    if (data.playerA && data.playerB && data.playerA.submitted && data.playerB.submitted) {
+        // Urutan hasil sesuai input awal
+        let hasilA = (playerType === 'A') ? data.playerA : data.playerB;
+        let hasilB = (playerType === 'A') ? data.playerB : data.playerA;
+        showResult(hasilA.answers, hasilB.answers, hasilA.name, hasilB.name);
     }
-
+});
     // Fungsi pesan sesuai persentase (dari gambar kamu)
     function getMessage(percentage) {
         if (percentage < 10) return 'Buruk banget! Ini bukan cinta, ini mungkin cuma teman sekamar. 💀';
