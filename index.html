@@ -28,7 +28,7 @@
             color: #d32f5c;
             vertical-align: middle;
         }
-        #roomSection input {
+        input[type="text"] {
             padding: 16px;
             margin: 12px 16px;
             border-radius: 12px;
@@ -37,7 +37,7 @@
             width: 260px;
             text-align: center;
         }
-        #roomSection button {
+        button {
             background: #d32f5c;
             color: #fff;
             border: none;
@@ -48,8 +48,19 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        #roomSection button:hover {
+        button:hover {
             background: #b71c48;
+        }
+        .question {
+            margin: 24px 0 18px 0;
+            font-size: 1.3rem;
+        }
+        .scale-group {
+            margin: 18px 0 32px 0;
+        }
+        .scale-label {
+            margin: 0 8px;
+            font-size: 1.1rem;
         }
         .love-score {
             display: flex;
@@ -102,6 +113,11 @@
             color: #d32f5c;
             margin-top: 0;
         }
+        .score-message {
+            margin-top: 24px;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -114,16 +130,16 @@
         <div style="margin: 0 0 18px 0; color: #555; font-size: 1.2rem;">
             Kalkulator Cinta untuk Pasangan - Mainkan dengan jarak 1-2 meter untuk jawaban jujur!
         </div>
-        <div id="roomSection">
+        <div id="page1">
             <h2 style="margin-bottom: 10px;">Masukkan Nama Pasangan</h2>
             <input type="text" id="inputNameA" placeholder="Nama Person A">
             <input type="text" id="inputNameB" placeholder="Nama Person B">
             <br>
-            <button onclick="startCoupleRoom()">Mulai</button>
+            <button onclick="startRoom()">Mulai</button>
             <div id="roomStatus" style="margin-top: 15px; font-weight: bold; color: red;"></div>
         </div>
-        <div id="quizSection" style="display:none;"></div>
-        <div id="resultSection" style="display:none;"></div>
+        <div id="page2" style="display:none;"></div>
+        <div id="page3" style="display:none;"></div>
     </div>
     <!-- Firebase SDK (ganti config sesuai project kamu) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -142,22 +158,24 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.database();
 
+    // --- LOGIC ---
     let roomCode = null;
     let playerType = null; // 'A' atau 'B'
     let playerName = '';
     let partnerName = '';
-    let quizQuestions = [
-        "Apa warna favorit pasanganmu?",
-        "Apa makanan favorit pasanganmu?",
-        "Kapan ulang tahun pasanganmu?",
-        "Apa hobi pasanganmu?",
-        "Apa film favorit pasanganmu?"
+    let questions = [
+        "Seberapa sering kamu merasa didukung oleh pasanganmu?",
+        "Seberapa puas kamu dengan komunikasi kalian?",
+        "Seberapa besar kepercayaanmu pada pasanganmu?",
+        "Seberapa sering kamu merasa dihargai oleh pasanganmu?",
+        "Seberapa sering kamu dan pasanganmu menyelesaikan masalah bersama?",
+        "Seberapa bahagia kamu dalam hubungan ini?",
+        "Seberapa yakin kamu dengan masa depan hubungan ini?"
     ];
-    let playerAnswers = [];
-    let partnerAnswers = [];
+    let answers = [];
     let currentQuestion = 0;
 
-    function startCoupleRoom() {
+    function startRoom() {
         const nameA = document.getElementById('inputNameA').value.trim();
         const nameB = document.getElementById('inputNameB').value.trim();
         if (!nameA || !nameB) {
@@ -166,65 +184,37 @@
         }
         // Urutkan nama agar pasangan tidak tertukar
         const [n1, n2] = [nameA.toLowerCase(), nameB.toLowerCase()].sort();
-        const code = `LOVE2-${n1}-${n2}`;
-        const roomRef = db.ref('rooms/' + code);
-        roomRef.once('value').then(snapshot => {
-            let isA = (nameA.toLowerCase() === n1);
-            if (snapshot.exists()) {
-                const roomData = snapshot.val();
-                if (roomData.playerA.name && roomData.playerB.name) {
-                    document.getElementById('roomStatus').innerText = 'Room sudah penuh!';
-                    return;
-                }
-                roomCode = code;
-                playerType = isA ? 'A' : 'B';
-                playerName = isA ? nameA : nameB;
-                partnerName = isA ? nameB : nameA;
-                roomRef.child('player' + playerType).set({
-                    name: playerName,
-                    answers: null,
-                    submitted: false
-                });
-                transitionToQuiz();
-                listenToRoomChanges();
-            } else {
-                // Buat room baru
-                roomRef.set({
-                    created: firebase.database.ServerValue.TIMESTAMP,
-                    playerA: { name: isA ? nameA : '', answers: null, submitted: false },
-                    playerB: { name: isA ? '' : nameB, answers: null, submitted: false },
-                    status: 'waiting_for_players'
-                }).then(() => {
-                    roomCode = code;
-                    playerType = isA ? 'A' : 'B';
-                    playerName = isA ? nameA : nameB;
-                    partnerName = isA ? nameB : nameA;
-                    roomRef.child('player' + playerType).set({
-                        name: playerName,
-                        answers: null,
-                        submitted: false
-                    });
-                    transitionToQuiz();
-                    listenToRoomChanges();
-                });
-            }
+        roomCode = `LOVE2-${n1}-${n2}`;
+        playerType = (nameA.toLowerCase() === n1) ? 'A' : 'B';
+        playerName = (playerType === 'A') ? nameA : nameB;
+        partnerName = (playerType === 'A') ? nameB : nameA;
+
+        // Simpan nama ke database
+        db.ref('rooms/' + roomCode + '/player' + playerType).set({
+            name: playerName,
+            answers: null,
+            submitted: false
+        }).then(() => {
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = '';
+            showQuestion();
+            listenToRoom();
         });
     }
 
-    function transitionToQuiz() {
-        document.getElementById('roomSection').style.display = 'none';
-        document.getElementById('quizSection').style.display = '';
-        showQuestion();
-    }
-
     function showQuestion() {
-        let html = `<h2>Pertanyaan untuk ${playerName} 💖 ${partnerName}</h2>`;
-        if (currentQuestion < quizQuestions.length) {
+        let html = `<h2>Pertanyaan untuk ${playerName}</h2>`;
+        if (currentQuestion < questions.length) {
             html += `
-                <div style="font-size:1.3rem;margin:24px 0 18px 0;">${quizQuestions[currentQuestion]}</div>
-                <input type="text" id="answerInput" style="padding:12px;font-size:1.1rem;width:320px;border-radius:8px;border:1.5px solid #d32f5c;">
-                <br>
-                <button onclick="submitAnswer()" style="margin-top:18px;">Jawab</button>
+                <div class="question">${questions[currentQuestion]}</div>
+                <div class="scale-group">
+                    <label class="scale-label"><input type="radio" name="scale" value="1"> 1</label>
+                    <label class="scale-label"><input type="radio" name="scale" value="2"> 2</label>
+                    <label class="scale-label"><input type="radio" name="scale" value="3"> 3</label>
+                    <label class="scale-label"><input type="radio" name="scale" value="4"> 4</label>
+                    <label class="scale-label"><input type="radio" name="scale" value="5"> 5</label>
+                </div>
+                <button onclick="submitAnswer()">Jawab</button>
             `;
         } else {
             html += `
@@ -232,59 +222,77 @@
                 <button onclick="submitAllAnswers()">Selesai Jawab</button>
             `;
         }
-        document.getElementById('quizSection').innerHTML = html;
+        document.getElementById('page2').innerHTML = html;
     }
 
     function submitAnswer() {
-        const ans = document.getElementById('answerInput').value.trim();
-        if (!ans) return;
-        playerAnswers.push(ans);
+        const radios = document.getElementsByName('scale');
+        let val = null;
+        for (let r of radios) if (r.checked) val = parseInt(r.value);
+        if (!val) return;
+        answers.push(val);
         currentQuestion++;
         showQuestion();
     }
 
     function submitAllAnswers() {
         db.ref(`rooms/${roomCode}/player${playerType}`).update({
-            answers: playerAnswers,
+            answers: answers,
             submitted: true
         });
-        document.getElementById('quizSection').innerHTML = `<div style="font-size:1.2rem;margin:32px 0;">Jawaban Anda sudah terkirim.<br>Menunggu pasangan selesai menjawab...</div>`;
+        document.getElementById('page2').innerHTML = `<div style="font-size:1.2rem;margin:32px 0;">Jawaban Anda sudah terkirim.<br>Menunggu pasangan selesai menjawab...</div>`;
     }
 
-    function listenToRoomChanges() {
+    function listenToRoom() {
         db.ref('rooms/' + roomCode).on('value', snapshot => {
             const data = snapshot.val();
             if (!data) return;
-            // Jika kedua sudah submit, tampilkan hasil
-            if (data.playerA.submitted && data.playerB.submitted) {
+            if (data.playerA && data.playerB && data.playerA.submitted && data.playerB.submitted) {
                 showResult(data.playerA.answers, data.playerB.answers, data.playerA.name, data.playerB.name);
             }
         });
     }
 
+    // Fungsi pesan sesuai persentase (dari gambar kamu)
+    function getMessage(percentage) {
+        if (percentage < 10) return 'Buruk banget! Ini bukan cinta, ini mungkin cuma teman sekamar. 💀';
+        if (percentage < 20) return 'Aduh, ini agak mengkhawatirkan. Perlu banyak introspeksi dan usaha. 😬';
+        if (percentage < 30) return 'Kurang ideal. Mungkin ada kesalahpahaman besar atau perbedaan prinsip. 😔';
+        if (percentage < 40) return 'Masih di bawah rata-rata. Butuh komunikasi serius dan kompromi. 😕';
+        if (percentage < 50) return 'Setengah-setengah. Ada potensi, tapi banyak PR yang harus dikerjakan. 🤔';
+        if (percentage < 60) return 'Lumayan! Ada dasar yang baik, bisa dikembangkan lebih jauh. 😉';
+        if (percentage < 70) return 'Cukup baik! Hubungan yang sehat dan menjanjikan. 👍';
+        if (percentage < 80) return 'Sangat baik! Kalian punya koneksi yang kuat dan saling menghargai. 🤗';
+        if (percentage < 90) return 'Luar biasa! Kalian adalah pasangan idaman, penuh cinta dan kebahagiaan. ✨';
+        return 'Sempurna! Kalian adalah belahan jiwa sejati, ditakdirkan untuk bersama! 💖';
+    }
+
     function showResult(ansA, ansB, nameA, nameB) {
-        document.getElementById('quizSection').style.display = 'none';
-        let scoreA = 0, scoreB = 0;
-        for (let i = 0; i < quizQuestions.length; i++) {
-            if (ansA[i] && ansB[i] && ansA[i].toLowerCase() === ansB[i].toLowerCase()) {
-                scoreA++; scoreB++;
-            }
+        document.getElementById('page2').style.display = 'none';
+        document.getElementById('page3').style.display = '';
+        // Skoring: selisih tiap jawaban, makin kecil makin cocok
+        let total = questions.length * 4; // max selisih 4 per soal
+        let diff = 0;
+        for (let i = 0; i < questions.length; i++) {
+            diff += Math.abs((ansA[i]||0) - (ansB[i]||0));
         }
-        let percentA = Math.round((scoreA / quizQuestions.length) * 100);
-        let percentB = Math.round((scoreB / quizQuestions.length) * 100);
-        document.getElementById('resultSection').style.display = '';
-        document.getElementById('resultSection').innerHTML = `
+        let percent = Math.round(100 - (diff / total) * 100);
+        percent = Math.max(0, Math.min(100, percent));
+        let msg = getMessage(percent);
+
+        document.getElementById('page3').innerHTML = `
             <h2>Hasil Love Sync</h2>
             <div class="love-score">
                 <div>
-                    <div class="love-shape"><span class="score-number">${percentA}%</span></div>
+                    <div class="love-shape"><span class="score-number">${percent}%</span></div>
                     <div class="score-label">${nameA}</div>
                 </div>
                 <div>
-                    <div class="love-shape"><span class="score-number">${percentB}%</span></div>
+                    <div class="love-shape"><span class="score-number">${percent}%</span></div>
                     <div class="score-label">${nameB}</div>
                 </div>
             </div>
+            <div class="score-message">${msg}</div>
             <div style="margin-top:32px;">
                 <button onclick="location.reload()">Main Lagi</button>
             </div>
