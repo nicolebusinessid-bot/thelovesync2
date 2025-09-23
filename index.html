@@ -18,11 +18,6 @@
             box-shadow: 0 8px 32px rgba(0,0,0,0.08);
             text-align: center;
         }
-        h1 {
-            color: #d32f5c;
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-        }
         .love {
             font-size: 2rem;
             color: #d32f5c;
@@ -69,39 +64,39 @@
             margin-top: 40px;
         }
         .love-shape {
-            width: 120px;
-            height: 110px;
-            background: #d32f5c;
+            width: 60px;
+            height: 55px;
+            background: transparent;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 60% 60% 70% 70%;
             margin: 0 auto 12px auto;
         }
         .love-shape:before,
         .love-shape:after {
             content: "";
             position: absolute;
-            width: 120px;
-            height: 110px;
+            width: 30px;
+            height: 50px;
             background: #d32f5c;
-            border-radius: 60% 60% 70% 70%;
+            border-radius: 30px 30px 0 0;
+            top: 0;
         }
         .love-shape:before {
-            left: -60px;
-            top: 0;
+            left: 15px;
+            transform: rotate(-45deg);
         }
         .love-shape:after {
             left: 0;
-            top: -60px;
+            transform: rotate(45deg);
         }
         .score-number {
             position: absolute;
             color: #fff;
-            font-size: 2.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
-            left: 0; right: 0; top: 38px;
+            left: 0; right: 0; top: 18px;
             text-align: center;
             z-index: 2;
             text-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -132,7 +127,7 @@
         </div>
         <div id="page1">
             <h2 style="margin-bottom: 10px;">
-                <span id="titleNames">Person A <span style="color:#d32f5c;">love</span> Person B</span>
+                <span id="titleNames"><b>Person A</b> <span style="color:#d32f5c;">love</span> <b>Person B</b></span>
             </h2>
             <input type="text" id="inputNameA" placeholder="Nama Person A">
             <input type="text" id="inputNameB" placeholder="Nama Person B">
@@ -185,7 +180,7 @@
     function updateTitleNames() {
         let a = inputA.value.trim() || "Person A";
         let b = inputB.value.trim() || "Person B";
-        document.getElementById('titleNames').innerHTML = `${a} <span style="color:#d32f5c;">love</span> ${b}`;
+        document.getElementById('titleNames').innerHTML = `<b>${a}</b> <span style="color:#d32f5c;">love</span> <b>${b}</b>`;
     }
 
     function startRoom() {
@@ -284,16 +279,17 @@
 
     function listenToRoom() {
         db.ref('rooms/' + roomCode).on('value', snapshot => {
-    const data = snapshot.val();
-    if (!data) return;
-    if (data.playerA && data.playerB && data.playerA.submitted && data.playerB.submitted) {
-        // Urutan hasil sesuai input awal
-        let hasilA = (playerType === 'A') ? data.playerA : data.playerB;
-        let hasilB = (playerType === 'A') ? data.playerB : data.playerA;
-        showResult(hasilA.answers, hasilB.answers, hasilA.name, hasilB.name);
+            const data = snapshot.val();
+            if (!data) return;
+            if (data.playerA && data.playerB && data.playerA.submitted && data.playerB.submitted) {
+                // Urutan hasil sesuai input awal
+                let hasilA = (playerType === 'A') ? data.playerA : data.playerB;
+                let hasilB = (playerType === 'A') ? data.playerB : data.playerA;
+                showResult(hasilA.answers, hasilB.answers, hasilA.name, hasilB.name);
+            }
+        });
     }
-});
-    // Fungsi pesan sesuai persentase (dari gambar kamu)
+
     function getMessage(percentage) {
         if (percentage < 10) return 'Buruk banget! Ini bukan cinta, ini mungkin cuma teman sekamar. 💀';
         if (percentage < 20) return 'Aduh, ini agak mengkhawatirkan. Perlu banyak introspeksi dan usaha. 😬';
@@ -337,7 +333,7 @@
                 <button onclick="location.reload()">Main Lagi</button>
             </div>
         `;
-    } // <--- TAMBAHKAN KURUNG KURAWAL INI UNTUK MENUTUP showResult
+    }
     </script>
 </body>
 </html>
