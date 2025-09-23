@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Love Sync - Kalkulator Cinta Pasangan</title>
+    <style>
+        /* Pastikan tidak ada elemen yang overlap di atas tombol Mulai */
+        #roomSection {
+            position: relative;
+            z-index: 2;
+        }
+        #roomSection button {
+            pointer-events: auto;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #e91e63;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin: 10px;
+            border: 2px solid #e91e63;
+            border-radius: 10px;
+            width: 200px;
+            text-align: center;
+        }
+        button {
+            background: #e91e63;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #c2185b;
+        }
+        .question-block { /* Mengganti .question menjadi .question-block untuk satu halaman */
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            text-align: left; /* Agar teks pertanyaan tidak center */
+        }
+        .scale {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+            flex-wrap: wrap; /* Agar responsif di layar kecil */
+        }
+        .scale label {
+            margin: 0 10px;
+            white-space: nowrap; /* Agar label tidak pecah */
+        }
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+        .result-item {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            font-size: 1.2em;
+            color: #1976d2;
+        }
+        .conclusion {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        .hidden {
+            display: none;
+        }
+        @media (max-width: 600px) {
+            input[type="text"] { width: 150px; }
+            .scale { flex-direction: row; justify-content: center; } /* Tetap row tapi center */
+            .scale label { margin: 5px; }
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>💕 The Love Sync 💕</h1>
+        <p class="subtitle">Kalkulator Cinta untuk Pasangan - Mainkan dengan jarak 1-2 meter untuk jawaban jujur!</p>
+
+        <!-- Bagian Room (Halaman Pertama) -->
+        <div id="roomSection">
+            <h2>Masukkan Nama Pasangan</h2>
+            <input type="text" id="inputNameA" placeholder="Nama Person A (misal: Nicole)">
+            <input type="text" id="inputNameB" placeholder="Nama Person B (misal: Naira)">
+            <br>
+            <button onclick="startCoupleRoom()">Mulai</button>
+            <div id="roomStatus" style="margin-top: 15px; font-weight: bold; color: red;"></div>
+        </div>
+
+        <!-- Input Nama (Halaman Kedua, setelah masuk room) -->
+        <div id="nameInput" class="hidden">
+            <h2>Masukkan Nama Anda</h2>
+            <input type="text" id="playerName" placeholder="Nama Anda (misal: Nicole)" required>
+            <br>
+            <button onclick="submitPlayerName()">Lanjut ke Kuis</button>
+            <p style="margin-top: 15px;">Menunggu pasangan Anda bergabung dan memasukkan nama...</p>
+        </div>
+
+        <!-- Kuis (Satu Halaman untuk Person A dan B) -->
+        <div id="quizPage" class="hidden">
+            <h2 id="quizTitle">Kuis untuk <span id="currentQuizPlayerName"></span></h2>
+            <p>Jawab pertanyaan dengan jujur (skala 1-5: 1=Sangat Tidak Setuju, 5=Sangat Setuju).</p>
+            <form id="quizForm">
+                <!-- Pertanyaan akan di-generate di sini oleh JavaScript -->
+            </form>
+            <button type="button" onclick="submitQuiz()">Selesai Jawab</button>
+            <div id="quizStatus" style="margin-top: 15px; font-weight: bold;"></div>
+        </div>
+
+        <!-- Hasil -->
+        <div id="results" class="hidden">
+            <h2>Hasil & Skoring</h2>
+            <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div class="love-score">
+                    <div class="love-shape">❤️</div>
+                    <div class="love-percent" id="lovePercentA"></div>
+                    <div class="love-label" id="loveLabelA"></div>
+                </div>
+                <div class="love-score">
+                    <div class="love-shape">❤️</div>
+                    <div class="love-percent" id="lovePercentB"></div>
+                    <div class="love-label" id="loveLabelB"></div>
+                </div>
+            </div>
+            <div id="overallScoreDisplay" class="result-item" style="background: #ffe0b2; color: #ef6c00;"></div>
+            <div id="conclusionText" class="conclusion"></div>
+            <button onclick="restartGame()" style="margin-top: 20px;">Main Lagi</button>
+        </div>
+    </div>
+
+    <script>
+        // Mulai room berdasarkan dua nama
+        async function startCoupleRoom() {
+            const nameA = document.getElementById('inputNameA').value.trim();
+            const nameB = document.getElementById('inputNameB').value.trim();
+            if (!nameA || !nameB) {
+                document.getElementById('roomStatus').innerText = 'Nama Person A dan B harus diisi!';
+                return;
+            }
+            // Urutkan nama agar pasangan tidak tertukar (pakai lowercase untuk kode, tapi value asli tetap dipakai untuk display)
+            const [n1, n2] = [nameA.toLowerCase(), nameB.toLowerCase()].sort();
+            const code = `LOVE2-${n1}-${n2}`;
+            const roomRef = db.ref('rooms/' + code);
+            const snapshot = await roomRef.once('value');
+            let isA = (nameA === n1);
+            if (snapshot.exists()) {
+                const roomData = snapshot.val();
+                // Jika slot sudah penuh
+                if (roomData.playerA.name && roomData.playerB.name) {
+                    document.getElementById('roomStatus').innerText = 'Room sudah penuh!';
+                    return;
+                }
+                roomCode = code;
+                playerType = isA ? 'A' : 'B';
+                localStorage.setItem('roomCode', roomCode);
+                localStorage.setItem('playerType', playerType);
+                transitionToNameInput();
+                listenToRoomChanges();
+            } else {
+                // Buat room baru
+                await roomRef.set({
+                    created: firebase.database.ServerValue.TIMESTAMP,
+                    playerA: { name: '', answers: null, submitted: false },
+                    playerB: { name: '', answers: null, submitted: false },
+                    status: 'waiting_for_players'
+                });
+                roomCode = code;
+                playerType = isA ? 'A' : 'B';
+                localStorage.setItem('roomCode', roomCode);
+                localStorage.setItem('playerType', playerType);
+                transitionToNameInput();
+                listenToRoomChanges();
+            }
+        }
+    // ====================================================================
+    // 1. Konfigurasi Firebase
+    // ====================================================================
+    const firebaseConfig = {
+  apiKey: "AIzaSyBzwNAjiTNPpP4lZtncUMynL9QzkkDF3qc",
+  authDomain: "gatau-e9a77.firebaseapp.com",
+  databaseURL: "https://gatau-e9a77-default-rtdb.firebaseio.com",
+  projectId: "gatau-e9a77",
+  storageBucket: "gatau-e9a77.firebasestorage.app",
+  messagingSenderId: "120092916619",
+  appId: "1:120092916619:web:c6b863b0c2f3815bc40d8e",
+  measurementId: "G-P54EP1G10G"
+};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+        // ====================================================================
+        // 2. Variabel Global
+        // ====================================================================
+        let roomCode = null;
+        let playerType = null; // 'A' atau 'B'
+        let playerName = '';
+        let partnerName = '';
+
+        // Data Kuis (dengan skor untuk setiap opsi)
+        const questionsData = [
+            {
+                text: "Saya merasa didukung sepenuhnya oleh pasangan saya dalam mimpi dan tujuan hidup.",
+                options: [
+                    { value: 1, label: "1" }, { value: 2, label: "2" }, { value: 3, label: "3" },
+                    { value: 4, label: "4" }, { value: 5, label: "5" }
+                ]
+            },
+            {
+                text: "Komunikasi kami terbuka dan jujur, tanpa rahasia besar.",
+                options: [
+                    { value: 1, label: "1" }, { value: 2, label: "2" }, { value: 3, label: "3" },
+                    { value: 4, label: "4" }, { value: 5, label: "5" }
+                ]
+            },
+            {
+                text: "Kami sering menghabiskan waktu berkualitas bersama dan menikmatinya.",
+                options: [
+                    { value: 1, label: "1" }, { value: 2, label: "2" }, { value: 3, label: "3" },
+                    { value: 4, label: "4" }, { value: 5, label: "5" }
+                ]
+            },
+            {
+                text: "Pasangan saya menghargai perbedaan kami dan tidak mencoba mengubah saya.",
+                options: [
+                    { value: 1, label: "1" }, { value: 2, label: "2" }, { value: 3, label: "3" },
+                    { value: 4, label: "4" }, { value: 5, label: "5" }
+                ]
+            },
+            {
+                text: "Kami saling memaafkan kesalahan dengan cepat dan belajar darinya.",
+                options: [
+                    { value: 1, label: "1" }, { value: 2, label: "2" }, { value: 3, label: "3" },
+                    { value: 4, label: "4" }, { value: 5, label: "5" }
+                ]
+            },
+            {
+                text: "Saya merasa aman dan nyaman berbagi perasaan terdalam dengan pasangan.",
+                options: [
+                    { value: 1, label: "1" }, { value: 2, label: "2" }, { value: 3, label: "3" },
+                    { value: 4, label: "4" }, { value: 5, label: "5" }
+                ]
+            },
+            {
+                text: "Kami memiliki visi masa depan yang selaras untuk bersama.",
+                options: [
+                    { value: 1, label: "1" }, { value: 2, label: "2" }, { value: 3, label: "3" },
+                    { value: 4, label: "4" }, { value: 5, label: "5" }
+                ]
+            },
+            {
+                text: "Cinta kami tumbuh lebih kuat seiring waktu, bukan menurun.",
+                options: [
+                    { value: 1, label: "1" }, { value: 2, label: "2" }, { value: 3, label: "3" },
+                    { value: 4, label: "4" }, { value: 5, label: "5" }
+                ]
+            }
+        ];
+
+        // ====================================================================
+        // 3. Fungsi Room Management
+        // ====================================================================
+
+        // Membuat Room Baru
+        async function createRoom() {
+            const code = document.getElementById('roomCode').value.trim().toUpperCase();
+            if (!code) {
+                alert('Mohon masukkan kode room!');
+                return;
+            }
+
+            const roomRef = db.ref('rooms/' + code);
+            const snapshot = await roomRef.once('value');
+
+            if (snapshot.exists()) {
+                alert('Kode room sudah ada. Silakan gunakan kode lain atau gabung.');
+            } else {
+                await roomRef.set({
+                    created: firebase.database.ServerValue.TIMESTAMP,
+                    playerA: { name: '', answers: null, submitted: false },
+                    playerB: { name: '', answers: null, submitted: false },
+                    status: 'waiting_for_players'
+                });
+                roomCode = code;
+                playerType = 'A';
+                document.getElementById('roomStatus').innerText = `Room '${roomCode}' dibuat. Anda adalah Person A. Kirim kode ini ke pasangan Anda.`;
+                transitionToNameInput();
+                listenToRoomChanges();
+            }
+        }
+
+        // Bergabung ke Room
+        async function joinRoom() {
+            const code = document.getElementById('roomCode').value.trim().toUpperCase();
+            if (!code) {
+                alert('Mohon masukkan kode room!');
+                return;
+            }
+
+            const roomRef = db.ref('rooms/' + code);
+            const snapshot = await roomRef.once('value');
+
+            if (snapshot.exists()) {
+                const roomData = snapshot.val();
+                if (roomData.playerA.name && roomData.playerB.name) {
+                    alert('Room sudah penuh!');
+                    return;
+                }
+                roomCode = code;
+                playerType = roomData.playerA.name ? 'B' : 'A'; // Jika A sudah ada, jadi B. Jika A belum, jadi A.
+                document.getElementById('roomStatus').innerText = `Berhasil gabung ke room '${roomCode}'. Anda adalah Person ${playerType}.`;
+                transitionToNameInput();
+                listenToRoomChanges();
+            } else {
+                alert('Kode room tidak ditemukan!');
+            }
+        }
+
+        // Mendengarkan Perubahan di Room Firebase
+        function listenToRoomChanges() {
+            db.ref('rooms/' + roomCode).on('value', (snapshot) => {
+                const roomData = snapshot.val();
+                if (!roomData) {
+                    // Room mungkin sudah dihapus
+                    alert('Room telah ditutup atau tidak ada lagi.');
+                    restartGame();
+                    return;
+                }
+
+                // Update nama pasangan
+                if (playerType === 'A') {
+                    partnerName = roomData.playerB.name;
+                } else {
+                    partnerName = roomData.playerA.name;
+                }
+
+                // Jika kedua nama sudah masuk, mulai kuis
+                if (roomData.playerA.name && roomData.playerB.name && document.getElementById('nameInput').classList.contains('hidden') === false) {
+                    transitionToQuiz();
+                }
+
+                // Jika kedua pemain sudah submit jawaban, tampilkan hasil
+                if (roomData.playerA.submitted && roomData.playerB.submitted) {
+                    displayResults(roomData.playerA.answers, roomData.playerB.answers, roomData.playerA.name, roomData.playerB.name);
+                } else if (document.getElementById('quizPage').classList.contains('hidden') === false) {
+                    // Update status submit di halaman kuis
+                    let statusText = `Menunggu ${playerType === 'A' ? roomData.playerB.name : roomData.playerA.name} selesai menjawab...`;
+                    if (playerType === 'A' && roomData.playerA.submitted) {
+                        statusText = `Anda sudah submit. ${statusText}`;
+                    } else if (playerType === 'B' && roomData.playerB.submitted) {
+                        statusText = `Anda sudah submit. ${statusText}`;
+                    }
+                    document.getElementById('quizStatus').innerText = statusText;
+                }
+            });
+        }
+
+        // ====================================================================
+        // 4. Transisi Halaman
+        // ====================================================================
+
+        function transitionToNameInput() {
+            document.getElementById('roomSection').classList.add('hidden');
+            document.getElementById('nameInput').classList.remove('hidden');
+        }
+
+        async function submitPlayerName() {
+            const name = document.getElementById('playerName').value.trim();
+            if (!name) {
+                alert('Mohon masukkan nama Anda!');
+                return;
+            }
+            playerName = name;
+
+            const playerRef = db.ref(`rooms/${roomCode}/player${playerType}/name`);
+            await playerRef.set(playerName);
+
+            document.getElementById('nameInput').classList.add('hidden');
+            document.getElementById('roomStatus').innerText = `Nama Anda (${playerName}) sudah terdaftar.`;
+            // Langsung masuk ke kuis tanpa menunggu pasangan
+            transitionToQuiz();
+        }
+
+        function transitionToQuiz() {
+            document.getElementById('nameInput').classList.add('hidden');
+            document.getElementById('roomSection').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('quizPage').classList.remove('hidden');
+            // Tampilkan judul "Person A love Person B"
+            let nA = playerType === 'A' ? playerName : partnerName;
+            let nB = playerType === 'B' ? playerName : partnerName;
+            document.getElementById('currentQuizPlayerName').innerText = `${nA} love ${nB}`;
+            generateQuizQuestions();
+        }
+
+        // ====================================================================
+        // 5. Logika Kuis (Satu Halaman)
+        // ====================================================================
+
+        function generateQuizQuestions() {
+            const quizForm = document.getElementById('quizForm');
+            quizForm.innerHTML = ''; // Bersihkan pertanyaan sebelumnya
+
+            questionsData.forEach((q, qIndex) => {
+                const questionBlock = document.createElement('div');
+                questionBlock.className = 'question-block';
+                questionBlock.innerHTML = `<p>${qIndex + 1}. ${q.text}</p>`;
+
+                const scaleDiv = document.createElement('div');
+                scaleDiv.className = 'scale';
+
+                q.options.forEach(option => {
+                    const label = document.createElement('label');
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `q${qIndex}`; // Nama unik untuk setiap pertanyaan
+                    input.value = option.value;
+                    input.required = true; // Wajib diisi
+
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(` ${option.label}`));
+                    scaleDiv.appendChild(label);
+                });
+                questionBlock.appendChild(scaleDiv);
+                quizForm.appendChild(questionBlock);
+            });
+        }
+
+        async function submitQuiz() {
+            const quizForm = document.getElementById('quizForm');
+            const formData = new FormData(quizForm);
+            const playerAnswers = {};
+            let allAnswered = true;
+
+            questionsData.forEach((q, qIndex) => {
+                const answer = formData.get(`q${qIndex}`);
+                if (answer === null) {
+                    allAnswered = false;
+                }
+                playerAnswers[`q${qIndex}`] = parseInt(answer);
+            });
+
+            if (!allAnswered) {
+                alert('Mohon jawab semua pertanyaan sebelum submit!');
+                return;
+            }
+
+            const playerRef = db.ref(`rooms/${roomCode}/player${playerType}`);
+            await playerRef.update({
+                answers: playerAnswers,
+                submitted: true
+            });
+
+            document.getElementById('quizStatus').innerText = `Jawaban Anda sudah terkirim. Menunggu ${partnerName || 'pasangan Anda'}...`;
+            // Tombol submit bisa dinonaktifkan atau disembunyikan
+            document.querySelector('#quizPage button[type="button"]').disabled = true;
+        }
+
+        // ====================================================================
+        // 6. Logika Hasil dan Skoring
+        // ====================================================================
+
+        // Fungsi untuk mendapatkan pesan berdasarkan persentase
+        function getMessage(percentage) {
+            if (percentage < 10) return 'Buruk banget! Ini bukan cinta, ini mungkin cuma teman sekamar. 💀';
+            if (percentage < 20) return 'Aduh, ini agak mengkhawatirkan. Perlu banyak introspeksi dan usaha. 😬';
+            if (percentage < 30) return 'Kurang ideal. Mungkin ada kesalahpahaman besar atau perbedaan prinsip. 😔';
+            if (percentage < 40) return 'Masih di bawah rata-rata. Butuh komunikasi serius dan kompromi. 😕';
+            if (percentage < 50) return 'Setengah-setengah. Ada potensi, tapi banyak PR yang harus dikerjakan. 🤔';
+            if (percentage < 60) return 'Lumayan! Ada dasar yang baik, bisa dikembangkan lebih jauh. 😉';
+            if (percentage < 70) return 'Cukup baik! Hubungan yang sehat dan menjanjikan. 👍';
+            if (percentage < 80) return 'Sangat baik! Kalian punya koneksi yang kuat dan saling menghargai. 🥰';
+            if (percentage < 90) return 'Luar biasa! Kalian adalah pasangan idaman, penuh cinta dan kebahagiaan. ✨';
+            return 'Sempurna! Kalian adalah belahan jiwa sejati, ditakdirkan untuk bersama! 💖';
+        }
+
+        function calculateScore(answers) {
+            let total = 0;
+            for (const key in answers) {
+                total += answers[key];
+            }
+            const maxPossibleScore = questionsData.length * 5; // 8 pertanyaan * max 5 poin
+            const percentage = Math.round((total / maxPossibleScore) * 100);
+            return { total, percentage };
+        }
+
+        function displayResults(answersA, answersB, nameA, nameB) {
+            document.getElementById('quizPage').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+
+            const scoreA = calculateScore(answersA);
+            const scoreB = calculateScore(answersB);
+
+            // Tampilkan skor dalam bentuk love besar dengan angka persentase di tengah
+            document.getElementById('lovePercentA').innerHTML = `<span style='font-size:2em; font-weight:bold;'>${scoreA.percentage}%</span>`;
+            document.getElementById('loveLabelA').innerHTML = `<span style='font-size:1em;'>${nameA}</span>`;
+            document.getElementById('lovePercentB').innerHTML = `<span style='font-size:2em; font-weight:bold;'>${scoreB.percentage}%</span>`;
+            document.getElementById('loveLabelB').innerHTML = `<span style='font-size:1em;'>${nameB}</span>`;
+
+            const overallPercentage = Math.round((scoreA.percentage + scoreB.percentage) / 2);
+            document.getElementById('overallScoreDisplay').innerHTML = `💖 Kecocokan Keseluruhan: <b>${overallPercentage}%</b>`;
+            document.getElementById('conclusionText').textContent = getMessage(overallPercentage);
+
+            // Hentikan listener Firebase setelah hasil ditampilkan
+            db.ref('rooms/' + roomCode).off();
+        }
+
+        // ====================================================================
+        // 7. Fungsi Lain-lain
+        // ====================================================================
+
+        async function restartGame() {
+            if (roomCode && playerType === 'A') {
+                // Hanya Person A yang bisa menghapus room
+                await db.ref('rooms/' + roomCode).remove();
+            }
+            // Reset variabel lokal
+            roomCode = null;
+            playerType = null;
+            playerName = '';
+            partnerName = '';
+
+            // Tampilkan kembali halaman room
+            document.getElementById('roomSection').classList.remove('hidden');
+            document.getElementById('nameInput').classList.add('hidden');
+            document.getElementById('quizPage').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('roomCode').value = '';
+            document.getElementById('roomStatus').innerText = '';
+            document.getElementById('playerName').value = '';
+            document.querySelector('#quizPage button[type="button"]').disabled = false; // Aktifkan kembali tombol submit
+        }
+    </script>
+</body>
+</html>
