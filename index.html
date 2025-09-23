@@ -232,6 +232,8 @@
                 document.getElementById('page2').style.display = '';
                 showQuestion();
                 listenToRoom();
+            });
+        });
     }
 
     function showQuestion() {
@@ -252,6 +254,7 @@
             html += `
                 <div style="font-size:1.2rem;margin:24px 0 18px 0;">Semua pertanyaan sudah dijawab!</div>
                 <button onclick="submitAllAnswers()">Selesai Jawab</button>
+            `;
         }
         document.getElementById('page2').innerHTML = html;
     }
@@ -286,7 +289,6 @@
                 let ansB = (data.playerB && data.playerB.name === nameB) ? data.playerB.answers : data.playerA.answers;
                 showResult(ansA, ansB, nameA, nameB);
     }
-
     function getMessage(percentage) {
         if (percentage < 10) return 'Buruk banget! Ini bukan cinta, ini mungkin cuma teman sekamar. 💀';
         if (percentage < 20) return 'Aduh, ini agak mengkhawatirkan. Perlu banyak introspeksi dan usaha. 😬';
@@ -299,7 +301,6 @@
         if (percentage < 90) return 'Luar biasa! Kalian adalah pasangan idaman, penuh cinta dan kebahagiaan. ✨';
         return 'Sempurna! Kalian adalah belahan jiwa sejati, ditakdirkan untuk bersama! 💖';
     }
-
     function showResult(ansA, ansB, nameA, nameB) {
         document.getElementById('page2').style.display = 'none';
         document.getElementById('page3').style.display = '';
