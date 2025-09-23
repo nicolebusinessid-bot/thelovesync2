@@ -312,8 +312,8 @@
             } else {
                 await roomRef.set({
                     created: firebase.database.ServerValue.TIMESTAMP,
-                    playerA: { name: '', answers: null, submitted: false },
-                    playerB: { name: '', answers: null, submitted: false },
+                    playerA: { name: '', answers: sesuaikan, submitted: true },
+                    playerB: { name: '', answers: sesuaikan, submitted: true },
                     status: 'waiting_for_players'
                 });
                 roomCode = code;
