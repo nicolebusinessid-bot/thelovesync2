@@ -131,7 +131,9 @@
             Kalkulator Cinta untuk Pasangan - Mainkan dengan jarak 1-2 meter untuk jawaban jujur!
         </div>
         <div id="page1">
-            <h2 style="margin-bottom: 10px;">Masukkan Nama Pasangan</h2>
+            <h2 style="margin-bottom: 10px;">
+                <span id="titleNames">Person A <span style="color:#d32f5c;">love</span> Person B</span>
+            </h2>
             <input type="text" id="inputNameA" placeholder="Nama Person A">
             <input type="text" id="inputNameB" placeholder="Nama Person B">
             <br>
@@ -175,32 +177,67 @@
     ];
     let answers = [];
     let currentQuestion = 0;
+    let inputA = document.getElementById('inputNameA');
+    let inputB = document.getElementById('inputNameB');
+    inputA.addEventListener('input', updateTitleNames);
+    inputB.addEventListener('input', updateTitleNames);
+
+    function updateTitleNames() {
+        let a = inputA.value.trim() || "Person A";
+        let b = inputB.value.trim() || "Person B";
+        document.getElementById('titleNames').innerHTML = `${a} <span style="color:#d32f5c;">love</span> ${b}`;
+    }
 
     function startRoom() {
-        const nameA = document.getElementById('inputNameA').value.trim();
-        const nameB = document.getElementById('inputNameB').value.trim();
+        const nameA = inputA.value.trim();
+        const nameB = inputB.value.trim();
         if (!nameA || !nameB) {
             document.getElementById('roomStatus').innerText = 'Nama Person A dan B harus diisi!';
             return;
         }
         document.getElementById('roomStatus').innerText = '';
-        // Urutkan nama agar pasangan tidak tertukar
+        // Room code tetap urut alfabet agar dua device masuk room sama
         const [n1, n2] = [nameA.toLowerCase(), nameB.toLowerCase()].sort();
         roomCode = `LOVE2-${n1}-${n2}`;
-        playerType = (nameA.toLowerCase() === n1) ? 'A' : 'B';
-        playerName = (playerType === 'A') ? nameA : nameB;
-        partnerName = (playerType === 'A') ? nameB : nameA;
 
-        // Simpan nama ke database
-        db.ref('rooms/' + roomCode + '/player' + playerType).set({
-            name: playerName,
-            answers: null,
-            submitted: false
-        }).then(() => {
-            document.getElementById('page1').style.display = 'none';
-            document.getElementById('page2').style.display = '';
-            showQuestion();
-            listenToRoom();
+        // Deteksi: jika sudah ada playerA, device kedua otomatis jadi playerB
+        db.ref('rooms/' + roomCode).once('value').then(snapshot => {
+            let data = snapshot.val();
+            if (!data) {
+                // Room baru, device ini jadi A
+                playerType = 'A';
+                playerName = nameA;
+                partnerName = nameB;
+            } else if (data.playerA && data.playerA.name === nameA) {
+                playerType = 'A';
+                playerName = nameA;
+                partnerName = nameB;
+            } else if (data.playerB && data.playerB.name === nameA) {
+                playerType = 'B';
+                playerName = nameA;
+                partnerName = nameB;
+            } else if (!data.playerA || !data.playerA.name) {
+                playerType = 'A';
+                playerName = nameA;
+                partnerName = nameB;
+            } else if (!data.playerB || !data.playerB.name) {
+                playerType = 'B';
+                playerName = nameA;
+                partnerName = nameB;
+            } else {
+                document.getElementById('roomStatus').innerText = 'Room sudah penuh!';
+                return;
+            }
+            db.ref('rooms/' + roomCode + '/player' + playerType).set({
+                name: playerName,
+                answers: null,
+                submitted: false
+            }).then(() => {
+                document.getElementById('page1').style.display = 'none';
+                document.getElementById('page2').style.display = '';
+                showQuestion();
+                listenToRoom();
+            });
         });
     }
 
@@ -250,7 +287,10 @@
             const data = snapshot.val();
             if (!data) return;
             if (data.playerA && data.playerB && data.playerA.submitted && data.playerB.submitted) {
-                showResult(data.playerA.answers, data.playerB.answers, data.playerA.name, data.playerB.name);
+                // Urutan hasil sesuai input awal
+                let hasilA = (playerType === 'A') ? data.playerA : data.playerB;
+                let hasilB = (playerType === 'A') ? data.playerB : data.playerA;
+                showResult(hasilA.answers, hasilB.answers, hasilA.name, hasilB.name);
             }
         });
     }
