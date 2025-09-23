@@ -111,7 +111,7 @@
 <body>
     <div class="container">
         <h1>💕 The Love Sync 💕</h1>
-        <p class="subtitle">Kalkulator Cinta untuk Pasangan - Mainkan dengan jarak 1-2 meter untuk jawaban jujur!</p>
+        <p class="subtitle">Kalkulator Cinta untuk Pasangan - Mainkan dengan jujur</p>
 
         <!-- Bagian Room (Halaman Pertama) -->
         <div id="roomSection">
@@ -469,8 +469,8 @@
 
             questionsData.forEach((q, qIndex) => {
                 const answer = formData.get(`q${qIndex}`);
-                if (answer === null) {
-                    allAnswered = false;
+                if (answer === yes) {
+                    allAnswered = true;
                 }
                 playerAnswers[`q${qIndex}`] = parseInt(answer);
             });
