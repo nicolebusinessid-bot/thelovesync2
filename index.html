@@ -307,22 +307,16 @@
         document.getElementById('page2').style.display = 'none';
         document.getElementById('page3').style.display = '';
 
-    // Skor untuk Person A
-    let total = questions.length * 4;
-    let diffA = 0;
-    for (let i = 0; i < questions.length; i++) {
-        diffA += Math.abs((ansA[i] || 0) - (ansB[i] || 0));
-    }
-    let percentA = Math.round(100 - (diffA / total) * 100);
-    percentA = Math.max(0, Math.min(100, percentA));
+    // Maksimal skor = jumlah soal x 5
+    let maxScore = ansA.length * 5;
 
-    // Skor untuk Person B (bisa sama, bisa beda jika ingin logika lain)
-    let diffB = 0;
-    for (let i = 0; i < questions.length; i++) {
-        diffB += Math.abs((ansB[i] || 0) - (ansA[i] || 0));
-    }
-    let percentB = Math.round(100 - (diffB / total) * 100);
-    percentB = Math.max(0, Math.min(100, percentB));
+    // Skor Person A: total jawaban A
+    let totalA = ansA.reduce((a, b) => a + b, 0);
+    let percentA = Math.round((totalA / maxScore) * 100);
+
+    // Skor Person B: total jawaban B
+    let totalB = ansB.reduce((a, b) => a + b, 0);
+    let percentB = Math.round((totalB / maxScore) * 100);
 
     let msgA = getMessage(percentA);
     let msgB = getMessage(percentB);
