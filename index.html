@@ -283,7 +283,7 @@
     }
 
     function listenToRoom() {
-        db.ref('rooms/' + roomCode).on('value', snapshot => {
+       db.ref('rooms/' + roomCode).on('value', snapshot => {
     const data = snapshot.val();
     if (!data) return;
     if (data.playerA && data.playerB && data.playerA.submitted && data.playerB.submitted) {
