@@ -233,6 +233,8 @@
                 showQuestion();
                 listenToRoom();
             });
+        });
+    }
 
     function showQuestion() {
         let html = `<h2>Pertanyaan untuk ${playerName}</h2>`;
@@ -281,12 +283,13 @@
             if (!data) return;
             if (data.playerA && data.playerB && data.playerA.submitted && data.playerB.submitted) {
                 // Urutan hasil sesuai input awal
-                let nameA = document.getElementById('inputNameA').value.trim();
-                let nameB = document.getElementById('inputNameB').value.trim();
-                let ansA = (data.playerA && data.playerA.name === nameA) ? data.playerA.answers : data.playerB.answers;
-                let ansB = (data.playerB && data.playerB.name === nameB) ? data.playerB.answers : data.playerA.answers;
-                showResult(ansA, ansB, nameA, nameB);
+                let hasilA = (playerType === 'A') ? data.playerA : data.playerB;
+                let hasilB = (playerType === 'A') ? data.playerB : data.playerA;
+                showResult(hasilA.answers, hasilB.answers, hasilA.name, hasilB.name);
+            }
+        });
     }
+
     function getMessage(percentage) {
         if (percentage < 10) return 'Buruk banget! Ini bukan cinta, ini mungkin cuma teman sekamar. 💀';
         if (percentage < 20) return 'Aduh, ini agak mengkhawatirkan. Perlu banyak introspeksi dan usaha. 😬';
@@ -299,20 +302,27 @@
         if (percentage < 90) return 'Luar biasa! Kalian adalah pasangan idaman, penuh cinta dan kebahagiaan. ✨';
         return 'Sempurna! Kalian adalah belahan jiwa sejati, ditakdirkan untuk bersama! 💖';
     }
+
     function showResult(ansA, ansB, nameA, nameB) {
         document.getElementById('page2').style.display = 'none';
         document.getElementById('page3').style.display = '';
 
-    // Maksimal skor = jumlah soal x 5
-    let maxScore = ansA.length * 5;
+    // Skor untuk Person A
+    let total = questions.length * 4;
+    let diffA = 0;
+    for (let i = 0; i < questions.length; i++) {
+        diffA += Math.abs((ansA[i] || 0) - (ansB[i] || 0));
+    }
+    let percentA = Math.round(100 - (diffA / total) * 100);
+    percentA = Math.max(0, Math.min(100, percentA));
 
-    // Skor Person A: total jawaban A
-    let totalA = ansA.reduce((a, b) => a + b, 0);
-    let percentA = Math.round((totalA / maxScore) * 100);
-
-    // Skor Person B: total jawaban B
-    let totalB = ansB.reduce((a, b) => a + b, 0);
-    let percentB = Math.round((totalB / maxScore) * 100);
+    // Skor untuk Person B (bisa sama, bisa beda jika ingin logika lain)
+    let diffB = 0;
+    for (let i = 0; i < questions.length; i++) {
+        diffB += Math.abs((ansB[i] || 0) - (ansA[i] || 0));
+    }
+    let percentB = Math.round(100 - (diffB / total) * 100);
+    percentB = Math.max(0, Math.min(100, percentB));
 
     let msgA = getMessage(percentA);
     let msgB = getMessage(percentB);
