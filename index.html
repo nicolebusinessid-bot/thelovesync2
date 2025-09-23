@@ -283,11 +283,11 @@
             if (!data) return;
             if (data.playerA && data.playerB && data.playerA.submitted && data.playerB.submitted) {
                 // Urutan hasil sesuai input awal
-                let hasilA = (playerType === 'A') ? data.playerA : data.playerB;
-                let hasilB = (playerType === 'A') ? data.playerB : data.playerA;
-                showResult(hasilA.answers, hasilB.answers, hasilA.name, hasilB.name);
-            }
-        });
+                let nameA = document.getElementById('inputNameA').value.trim();
+                let nameB = document.getElementById('inputNameB').value.trim();
+                let ansA = (data.playerA && data.playerA.name === nameA) ? data.playerA.answers : data.playerB.answers;
+                let ansB = (data.playerB && data.playerB.name === nameB) ? data.playerB.answers : data.playerA.answers;
+                showResult(ansA, ansB, nameA, nameB);
     }
 
     function getMessage(percentage) {
