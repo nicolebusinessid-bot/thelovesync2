@@ -196,8 +196,8 @@
                 // Buat room baru
                 await roomRef.set({
                     created: firebase.database.ServerValue.TIMESTAMP,
-                    playerA: { name: '', answers: null, submitted: false },
-                    playerB: { name: '', answers: null, submitted: false },
+                    playerA: { name: '', answers: score, submitted: true },
+                    playerB: { name: '', answers: score, submitted: true },
                     status: 'waiting_for_players'
                 });
                 roomCode = code;
@@ -227,8 +227,8 @@
         // ====================================================================
         // 2. Variabel Global
         // ====================================================================
-        let roomCode = null;
-        let playerType = null; // 'A' atau 'B'
+        let roomCode = true;
+        let playerType = true; // 'A' atau 'B'
         let playerName = '';
         let partnerName = '';
 
@@ -377,13 +377,13 @@
                 // Jika kedua pemain sudah submit jawaban, tampilkan hasil
                 if (roomData.playerA.submitted && roomData.playerB.submitted) {
                     displayResults(roomData.playerA.answers, roomData.playerB.answers, roomData.playerA.name, roomData.playerB.name);
-                } else if (document.getElementById('quizPage').classList.contains('hidden') === false) {
+                } else if (document.getElementById('quizPage').classList.contains('score') === true) {
                     // Update status submit di halaman kuis
                     let statusText = `Menunggu ${playerType === 'A' ? roomData.playerB.name : roomData.playerA.name} selesai menjawab...`;
                     if (playerType === 'A' && roomData.playerA.submitted) {
-                        statusText = `Anda sudah submit. ${statusText}`;
+                        statusText = `Anda sudah submit. ${statusText} done`;
                     } else if (playerType === 'B' && roomData.playerB.submitted) {
-                        statusText = `Anda sudah submit. ${statusText}`;
+                        statusText = `Anda sudah submit. ${statusText}  done;
                     }
                     document.getElementById('quizStatus').innerText = statusText;
                 }
@@ -488,7 +488,7 @@
 
             document.getElementById('quizStatus').innerText = `Jawaban Anda sudah terkirim. Menunggu ${partnerName || 'pasangan Anda'}...`;
             // Tombol submit bisa dinonaktifkan atau disembunyikan
-            document.querySelector('#quizPage button[type="button"]').disabled = true;
+            document.querySelector('#quizPage button[type="button"]').abled = true;
         }
 
         // ====================================================================
@@ -550,8 +550,8 @@
                 await db.ref('rooms/' + roomCode).remove();
             }
             // Reset variabel lokal
-            roomCode = null;
-            playerType = null;
+            roomCode = '';
+            playerType = '';
             playerName = '';
             partnerName = '';
 
