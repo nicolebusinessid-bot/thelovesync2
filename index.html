@@ -129,8 +129,8 @@
             <h2 style="margin-bottom: 10px;">
                 <span id="titleNames"><b>Person A</b> <span style="color:#d32f5c;">love</span> <b>Person B</b></span>
             </h2>
-            <input type="text" id="inputNameA" placeholder="Nama Person A">
-            <input type="text" id="inputNameB" placeholder="Nama Person B">
+            <input type="text" id="inputNameA" placeholder="Namamu">
+            <input type="text" id="inputNameB" placeholder="Nama pasanganmu">
             <br>
             <button onclick="startRoom()">Mulai</button>
             <div id="roomStatus" style="margin-top: 15px; font-weight: bold; color: red;"></div>
@@ -178,8 +178,8 @@
     inputB.addEventListener('input', updateTitleNames);
 
     function updateTitleNames() {
-        let a = inputA.value.trim() || "Namamu";
-        let b = inputB.value.trim() || "Nama pasanganmu";
+        let a = inputA.value.trim() || "Person A";
+        let b = inputB.value.trim() || "Person B";
         document.getElementById('titleNames').innerHTML = `<b>${a}</b> <span style="color:#d32f5c;">love</span> <b>${b}</b>`;
     }
 
