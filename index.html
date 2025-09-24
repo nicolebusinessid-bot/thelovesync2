@@ -306,43 +306,55 @@
     }
 
     function showResult(ansA, ansB, nameA, nameB) {
-        document.getElementById('page2').style.display = 'none';
-        document.getElementById('page3').style.display = '';
+    document.getElementById('page2').style.display = 'none';
+    document.getElementById('page3').style.display = '';
 
-        // Skor Person A: total jawaban A
-        let maxScore = ansA.length * 5;
-        let totalA = ansA.reduce((a, b) => a + b, 0);
-        let percentA = Math.round((totalA / maxScore) * 100);
+    let maxScore = ansA.length * 5;
+    let totalA = ansA.reduce((a, b) => a + b, 0);
+    let percentA = Math.round((totalA / maxScore) * 100);
 
-        // Skor Person B: total jawaban B
-        let totalB = ansB.reduce((a, b) => a + b, 0);
-        let percentB = Math.round((totalB / maxScore) * 100);
+    let totalB = ansB.reduce((a, b) => a + b, 0);
+    let percentB = Math.round((totalB / maxScore) * 100);
 
-        let msgA = getMessage(percentA);
-        let msgB = getMessage(percentB);
+    let msgA = getMessage(percentA);
+    let msgB = getMessage(percentB);
 
-        document.getElementById('page3').innerHTML = `
-            <h2>Hasil Love Sync</h2>
-            <div class="love-score">
-                <div>
-                    <div class="love-shape"><span class="score-number">${percentA}%</span></div>
-                    <div class="score-label">${nameA}</div>
-                </div>
-                <div>
-                    <div class="love-shape"><span class="score-number">${percentB}%</span></div>
-                    <div class="score-label">${nameB}</div>
-                </div>
+    document.getElementById('page3').innerHTML = `
+        <h2>Hasil Love Sync</h2>
+        <div class="love-score">
+            <div>
+                <div class="love-shape"><span class="score-number">${percentA}%</span></div>
+                <div class="score-label">${nameA}</div>
             </div>
-            <div class="score-message">
-                <b>${nameA}:</b> ${msgA}<br><br>
-                <b>${nameB}:</b> ${msgB}
+            <div>
+                <div class="love-shape"><span class="score-number">${percentB}%</span></div>
+                <div class="score-label">${nameB}</div>
             </div>
-            <div style="margin-top:32px;">
-                <button onclick="location.reload()">Main Lagi</button>
-            </div>
-        `;
-    }
+        </div>
+        <div class="score-message">
+            <b>${nameA}:</b> ${msgA}<br><br>
+            <b>${nameB}:</b> ${msgB}
+        </div>
+        <div style="margin-top:32px;">
+            <button onclick="location.reload()">Main Lagi</button>
+        </div>
+    `;
 
+    // Kirim data ke Google Sheets via Google Apps Script
+    fetch('https://script.google.com/macros/s/AKfycbwTvIC1pRn5IEBYDUvhwWcP8WZQCVzZuuCI67u0_HRNqQJWrcGrFkThAN5X__6wWyin2w/exec', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        namaA: nameA,
+        namaB: nameB,
+        jawabanA: ansA.join(','),
+        jawabanB: ansB.join(','),
+        persenA: percentA,
+        persenB: percentB
+      })
+    });
+}
+    
     // Agar tombol Mulai bisa dipanggil dari HTML
     window.startRoom = startRoom;
     </script>
