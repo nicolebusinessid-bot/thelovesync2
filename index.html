@@ -123,7 +123,7 @@
             <span class="love">💕</span>
         </div>
         <div style="margin: 0 0 18px 0; color: #555; font-size: 1.2rem;">
-            Kalkulator Cinta untuk Pasangan - Isi namamu dan nama pasanganmu dengan menggunakan huruf kapital di awal!
+            Isi namamu dan nama pasanganmu dengan menggunakan huruf kapital di awal!  LIKERT 7 POINT "1 = Sangat Tidak Setuju hingga 7 = Sangat Setuju"
         </div>
         <div id="page1">
             <h2 style="margin-bottom: 10px;">
@@ -247,6 +247,8 @@
                     <label class="scale-label"><input type="radio" name="scale" value="3"> 3</label>
                     <label class="scale-label"><input type="radio" name="scale" value="4"> 4</label>
                     <label class="scale-label"><input type="radio" name="scale" value="5"> 5</label>
+                    <label class="scale-label"><input type="radio" name="scale" value="6"> 6</label>
+                    <label class="scale-label"><input type="radio" name="scale" value="7"> 7</label>
                 </div>
                 <button onclick="submitAnswer()">Jawab</button>
             `;
@@ -293,15 +295,15 @@
     }
 
     function getMessage(percentage) {
-        if (percentage < 10) return 'Sangat penting untuk instropeksi mendalam dan bekerja keras untuk mencari inti persoalan 💀';
-        if (percentage < 20) return 'Dibutuhkan kejujuran  dan komunikasi yang jelas untuk melihat apakah hubungan masih ada harapan untuk diperbaiki 😬';
-        if (percentage < 30) return 'Mencari titik tengah adalah kunci untuk melanjutkan hubungan 😔';
-        if (percentage < 40) return 'Ada pekerjaan rumah yang harus  segera diselesaikan agar hubungan bisa mencapai level berikutnya 😕';
-        if (percentage < 50) return 'Ini saat yang tepat untuk memperkuat ikatan dan membangun fondasi yang lebih kuat 🤔';
-        if (percentage < 60) return 'Usaha konsisten akan membuat hubungan kamu lebih kuat 😉';
-        if (percentage < 70) return 'Kasih sayang yang dijaga akan membuatnya semakin indah 👍';
-        if (percentage < 80) return 'Hubungan sudah stabil dan penuh potensi untuk berkembang lebih jauh 🤗';
-        if (percentage < 90) return 'Kekuatan hubungan ini bisa jadi inspirasi bagi orang lain ✨';
+        if (percentage < 10) return 'Waduh, sangat penting untuk anda mengintrospeksi diri mendalam dan bekerja keras untuk mencari inti persoalan 💀';
+        if (percentage < 20) return 'Anda perlu kejujuran  dan komunikasi yang jelas untuk melihat apakah hubungan masih ada harapan untuk diperbaiki 😬';
+        if (percentage < 30) return 'Mencari titik kejujuran anda adalah kunci untuk melanjutkan hubungan 😔';
+        if (percentage < 40) return 'Ada pekerjaan rumah yang harus anda segera selesaikan agar hubungan bisa mencapai level berikutnya 😕';
+        if (percentage < 50) return 'Ini saat yang tepat untuk anda memperkuat ikatan dan membangun fondasi hubungan yang lebih kuat 🤔';
+        if (percentage < 60) return 'Usaha konsisten anda akan membuat hubungan jauh lebih kuat 😉';
+        if (percentage < 70) return 'Lucunya, kasih sayang yang dijaga akan membuat pasangan anda semakin terbuka dalam bercerita👍';
+        if (percentage < 80) return 'Anda sudah stabil dan penuh potensi untuk berkembang lebih jauh 🤗';
+        if (percentage < 90) return 'Kekuatan hubungan anda ini bisa jadi inspirasi bagi orang lain ✨';
         return 'Hubungan ini mencerminkan keharmonisan yang indah dan tahan lama 💖';
     }
 
@@ -309,7 +311,7 @@
     document.getElementById('page2').style.display = 'none';
     document.getElementById('page3').style.display = '';
 
-    let maxScore = ansA.length * 5;
+    let maxScore = ansA.length * 7;
     let totalA = ansA.reduce((a, b) => a + b, 0);
     let percentA = Math.round((totalA / maxScore) * 100);
 
