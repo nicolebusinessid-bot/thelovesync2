@@ -220,7 +220,7 @@
                 playerName = nameA;
                 partnerName = nameB;
             } else {
-                document.getElementById('roomStatus').innerText = 'Room sudah penuh!';
+                document.getElementById('roomStatus').innerText = 'Nama sudah terpakai';
                 return;
             }
             db.ref('rooms/' + roomCode + '/player' + playerType).set({
